@@ -6,27 +6,28 @@
 //
 
 import SwiftUI
-import SwiftData
 
 @main
 struct ContainUApp: App {
-    var sharedModelContainer: ModelContainer = {
-        let schema = Schema([
-            Item.self,
-        ])
-        let modelConfiguration = ModelConfiguration(schema: schema, isStoredInMemoryOnly: false)
-
-        do {
-            return try ModelContainer(for: schema, configurations: [modelConfiguration])
-        } catch {
-            fatalError("Could not create ModelContainer: \(error)")
-        }
-    }()
-
+    #if FAKE_BACKEND
+    @StateObject private var containerService = MockContainerService()
+    #else
+    @StateObject private var containerService = ContainerService()
+    #endif
+    
     var body: some Scene {
-        WindowGroup {
-            ContentView()
+        WindowGroup("ContainU") {
+            ContentView(containerService: containerService)
+                .frame(minWidth: 900, minHeight: 600)
+                .background(.ultraThinMaterial)
         }
-        .modelContainer(sharedModelContainer)
+        .windowStyle(.titleBar)
+        .windowToolbarStyle(.unified(showsTitle: true))
+        .defaultSize(width: 1100, height: 700)
+    
+        Settings {
+            SettingsView()
+        }
     }
 }
+
